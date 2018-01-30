@@ -19,23 +19,48 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+
 /**
  * @author Tzachi
  */
 @Component
 public class DatabaseLoader implements CommandLineRunner {
 
-	private final HerbRepository repository;
+	private final HerbRepository herbRepo;
+	private final HerbCategoryQuestionRepository questionRepository;
 
 	@Autowired
-	public DatabaseLoader(HerbRepository repository) {
-		this.repository = repository;
+	public DatabaseLoader(HerbRepository herbRepo, HerbCategoryQuestionRepository questionRepository) {
+		this.herbRepo = herbRepo;
+		this.questionRepository = questionRepository;
 	}
 
 	@Override
 	public void run(String... strings) throws Exception {
-		this.repository.save(new Herb("Frodo", HerbCategory.PURGE_FIRE ,"it can kill you"));
-		this.repository.save(new Herb("Bilbo", HerbCategory.PURGE_FIRE,"it can cure you"));
-		this.repository.save(new Herb("Pippin", HerbCategory.RESOLVE_TOXICITY,"it does something"));
+		Herb herb1 = new Herb("Frodo", HerbCategory.PURGE_FIRE ,"it can kill you");
+		Herb herb2 = new Herb("Bilbo", HerbCategory.PURGE_FIRE,"it can cure you");
+		Herb herb3 = new Herb("Pippin", HerbCategory.RESOLVE_TOXICITY,"it does something");
+		this.herbRepo.save(herb1);
+		this.herbRepo.save(herb2);
+		this.herbRepo.save(herb3);
+
+
+		this.questionRepository.save(new HerbCategoryQuestion( new ArrayList<HerbCategory>() {{
+			add(HerbCategory.PURGE_FIRE);
+			add(HerbCategory.RESOLVE_TOXICITY);
+			add(HerbCategory.SNOW_STORM);
+		}}, herb1));
+		this.questionRepository.save(new HerbCategoryQuestion(new ArrayList<HerbCategory>() {{
+			add(HerbCategory.PURGE_FIRE);
+			add(HerbCategory.RESOLVE_TOXICITY);
+			add(HerbCategory.SNOW_STORM);
+		}}, herb2));
+		this.questionRepository.save(new HerbCategoryQuestion(new ArrayList<HerbCategory>() {{
+			add(HerbCategory.PURGE_FIRE);
+			add(HerbCategory.RESOLVE_TOXICITY);
+			add(HerbCategory.SNOW_STORM);
+		}}, herb3));
+
 	}
 }

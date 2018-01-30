@@ -3,10 +3,7 @@ package data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Version;
+import javax.persistence.*;
 
 @Data
 @Entity
@@ -16,7 +13,8 @@ public class Herb {
     @GeneratedValue
     Long id;
     private String englishName;
-    private HerbCategory herbCategory;
+    @Enumerated(EnumType.STRING)
+    private HerbCategory category;
     private String description;
 
     private @Version
@@ -25,9 +23,9 @@ public class Herb {
 
     private Herb() {}
 
-    public Herb(String englishName, HerbCategory herbCategory, String description) {
+    public Herb(String englishName, HerbCategory category, String description) {
         this.englishName = englishName;
-        this.herbCategory = herbCategory;
+        this.category = category;
         this.description = description;
     }
 }

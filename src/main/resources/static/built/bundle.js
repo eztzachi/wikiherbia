@@ -241,6 +241,7 @@
 			_this7.handleSubmit = _this7.handleSubmit.bind(_this7);
 			_this7.state = {
 				englishName: '',
+				category: '',
 				description: ''
 			};
 			_this7.handleChange = _this7.handleChange.bind(_this7);
@@ -261,6 +262,7 @@
 				this.props.onCreate(newHerb);
 				this.state = {
 					englishName: '',
+					category: '',
 					description: ''
 				};
 				window.location = "#";
@@ -286,10 +288,10 @@
 					React.createElement('input', { type: 'text', name: 'englishName', placeholder: 'englishName', ref: 'englishName', className: 'field', value: this.state.englishName, onChange: this.handleChange })
 				), React.createElement(
 					'p',
-					{ key: 'herbCategory', placeholder: 'choose one' },
+					{ key: 'category' },
 					React.createElement(
 						'select',
-						{ ref: 'herbCategory', defaultValue: '' },
+						{ name: 'category', ref: 'category', defaultValue: '', onChange: this.handleChange },
 						React.createElement(
 							'option',
 							{ value: '', disabled: true },
@@ -312,7 +314,7 @@
 					React.createElement('input', { type: 'text', name: 'description', placeholder: 'description', ref: 'description', className: 'field', value: this.state.description, onChange: this.handleChange })
 				)];
 	
-				var formValid = this.state.englishName.length > 0 && this.state.description.length > 0;
+				var formValid = this.state.englishName.length > 0 && this.state.description.length > 0 && this.state.category.length > 0;
 	
 				return React.createElement(
 					'div',
@@ -398,7 +400,7 @@
 								defaultValue: _this11.props.herb.entity[attribute],
 								ref: attribute, className: 'field' })
 						);
-					} else if (attribute == 'herbCategory') {
+					} else if (attribute == 'category') {
 						return React.createElement(
 							'p',
 							{ key: _this11.props.herb.entity[attribute] },
@@ -648,7 +650,7 @@
 					React.createElement(
 						'td',
 						null,
-						this.props.herb.entity.herbCategory
+						this.props.herb.entity.category
 					),
 					React.createElement(
 						'td',

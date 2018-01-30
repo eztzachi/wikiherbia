@@ -157,6 +157,7 @@ class CreateDialog extends React.Component {
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.state = {
           englishName: '',
+          category: '',
           description: '',
         };
         this.handleChange = this.handleChange.bind(this);
@@ -172,6 +173,7 @@ class CreateDialog extends React.Component {
 		this.props.onCreate(newHerb);
 		this.state = {
             englishName: '',
+            category: '',
             description: '',
         };
 		window.location = "#";
@@ -190,8 +192,8 @@ class CreateDialog extends React.Component {
             <p key='englishName'>
                 <input type="text" name='englishName' placeholder='englishName' ref='englishName' className="field" value={this.state.englishName} onChange={this.handleChange}/>
             </p>,
-            <p key='herbCategory' placeholder='choose one'>
-                <select ref='herbCategory' defaultValue=''>
+            <p key='category'>
+                <select name='category' ref='category' defaultValue='' onChange={this.handleChange}>
                     <option value="" disabled>Select Category</option>
                     <option value="PURGE_FIRE">Purge Fire</option>
                     <option value="RESOLVE_TOXICITY">Resolve Toxicity</option>
@@ -202,7 +204,7 @@ class CreateDialog extends React.Component {
             </p>
         ];
 
-        let formValid = this.state.englishName.length > 0 && this.state.description.length > 0;
+        let formValid = this.state.englishName.length > 0 && this.state.description.length > 0 && this.state.category.length > 0;
 
 		return (
 			<div>
@@ -250,7 +252,7 @@ class UpdateDialog extends React.Component {
                            defaultValue={this.props.herb.entity[attribute]}
                            ref={attribute} className="field" />
                 </p>
-            } else if (attribute == 'herbCategory') {
+            } else if (attribute == 'category') {
                 return <p key={this.props.herb.entity[attribute]}>
                     <select ref={attribute} defaultValue={this.props.herb.entity[attribute]}>
                       <option value="PURGE_FIRE">Purge Fire</option>
@@ -295,7 +297,6 @@ class HerbList extends React.Component {
 		this.handleInput = this.handleInput.bind(this);
 	}
 
-	// tag::handle-page-size-updates[]
 	handleInput(e) {
 		e.preventDefault();
 		var pageSize = ReactDOM.findDOMNode(this.refs.pageSize).value;
@@ -305,9 +306,7 @@ class HerbList extends React.Component {
 			ReactDOM.findDOMNode(this.refs.pageSize).value = pageSize.substring(0, pageSize.length - 1);
 		}
 	}
-	// end::handle-page-size-updates[]
 
-	// tag::handle-nav[]
 	handleNavFirst(e){
 		e.preventDefault();
 		this.props.onNavigate(this.props.links.first.href);
@@ -386,7 +385,7 @@ class Herb extends React.Component {
 		return (
 			<tr>
 				<td>{this.props.herb.entity.englishName}</td>
-				<td>{this.props.herb.entity.herbCategory}</td>
+				<td>{this.props.herb.entity.category}</td>
 				<td>{this.props.herb.entity.description}</td>
 				<td>
 					<UpdateDialog herb={this.props.herb}

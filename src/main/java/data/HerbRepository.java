@@ -15,11 +15,14 @@
  */
 package data;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 
 /**
  * @author Tzachi
  */
 public interface HerbRepository extends PagingAndSortingRepository<Herb, Long> {
-
+    Page<Herb> findByCategory(@Param("category") HerbCategory category, Pageable p);
 }
