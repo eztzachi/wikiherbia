@@ -13,7 +13,7 @@ class App extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {herbs: [], attributes: [], pageSize: 2, links: {}};
+		this.state = {herbs: [], attributes: [], pageSize: 10, links: {}};
 		this.updatePageSize = this.updatePageSize.bind(this);
 		this.onCreate = this.onCreate.bind(this);
 		this.onUpdate = this.onUpdate.bind(this);
@@ -21,29 +21,28 @@ class App extends React.Component {
 		this.onNavigate = this.onNavigate.bind(this);
 	}
 
-	// tag::follow-2[]
 	loadFromServer(pageSize) {
 		follow(client, root, [
 			{rel: 'herbs', params: {size: pageSize}}]
-		).then(employeeCollection => {
+		).then(herbCollection => {
 			return client({
 				method: 'GET',
-				path: employeeCollection.entity._links.profile.href,
+				path: herbCollection.entity._links.profile.href,
 				headers: {'Accept': 'application/schema+json'}
 			}).then(schema => {
 				this.schema = schema.entity;
-				this.links = employeeCollection.entity._links;
-				return employeeCollection;
+				this.links = herbCollection.entity._links;
+				return herbCollection;
 			});
-		}).then(employeeCollection => {
-			return employeeCollection.entity._embedded.herbs.map(herb =>
+		}).then(herbCollection => {
+			return herbCollection.entity._embedded.herbs.map(herb =>
 					client({
 						method: 'GET',
 						path: herb._links.self.href
 					})
 			);
-		}).then(employeePromises => {
-			return when.all(employeePromises);
+		}).then(herbPromises => {
+			return when.all(herbPromises);
 		}).done(herbs => {
 			this.setState({
 				herbs: herbs,
@@ -53,16 +52,14 @@ class App extends React.Component {
 			});
 		});
 	}
-	// end::follow-2[]
 
-	// tag::create[]
-	onCreate(newEmployee) {
+	onCreate(newHerb) {
 		var self = this;
 		follow(client, root, ['herbs']).then(response => {
 			return client({
 				method: 'POST',
 				path: response.entity._links.self.href,
-				entity: newEmployee,
+				entity: newHerb,
 				headers: {'Content-Type': 'application/json'}
 			})
 		}).then(response => {
@@ -75,14 +72,12 @@ class App extends React.Component {
 			}
 		});
 	}
-	// end::create[]
 
-	// tag::update[]
-	onUpdate(herb, updatedEmployee) {
+	onUpdate(herb, updatedHerb) {
 		client({
 			method: 'PUT',
 			path: herb.entity._links.self.href,
-			entity: updatedEmployee,
+			entity: updatedHerb,
 			headers: {
 				'Content-Type': 'application/json',
 				'If-Match': herb.headers.Etag
@@ -96,32 +91,28 @@ class App extends React.Component {
 			}
 		});
 	}
-	// end::update[]
 
-	// tag::delete[]
 	onDelete(herb) {
 		client({method: 'DELETE', path: herb.entity._links.self.href}).done(response => {
 			this.loadFromServer(this.state.pageSize);
 		});
 	}
-	// end::delete[]
 
-	// tag::navigate[]
 	onNavigate(navUri) {
 		client({
 			method: 'GET',
 			path: navUri
-		}).then(employeeCollection => {
-			this.links = employeeCollection.entity._links;
+		}).then(herbCollection => {
+			this.links = herbCollection.entity._links;
 
-			return employeeCollection.entity._embedded.herbs.map(herb =>
+			return herbCollection.entity._embedded.herbs.map(herb =>
 					client({
 						method: 'GET',
 						path: herb._links.self.href
 					})
 			);
-		}).then(employeePromises => {
-			return when.all(employeePromises);
+		}).then(herbPromises => {
+			return when.all(herbPromises);
 		}).done(herbs => {
 			this.setState({
 				herbs: herbs,
@@ -131,21 +122,16 @@ class App extends React.Component {
 			});
 		});
 	}
-	// end::navigate[]
 
-	// tag::update-page-size[]
 	updatePageSize(pageSize) {
 		if (pageSize !== this.state.pageSize) {
 			this.loadFromServer(pageSize);
 		}
 	}
-	// end::update-page-size[]
 
-	// tag::follow-1[]
 	componentDidMount() {
 		this.loadFromServer(this.state.pageSize);
 	}
-	// end::follow-1[]
 
 	render() {
 		return (
@@ -164,38 +150,65 @@ class App extends React.Component {
 	}
 }
 
-// tag::create-dialog[]
 class CreateDialog extends React.Component {
 
 	constructor(props) {
 		super(props);
 		this.handleSubmit = this.handleSubmit.bind(this);
+		this.state = {
+          englishName: '',
+          description: '',
+        };
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
 	}
 
 	handleSubmit(e) {
 		e.preventDefault();
-		var newEmployee = {};
+		var newHerb = {};
 		this.props.attributes.forEach(attribute => {
-			newEmployee[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
+			newHerb[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
 		});
-		this.props.onCreate(newEmployee);
-		this.props.attributes.forEach(attribute => {
-			ReactDOM.findDOMNode(this.refs[attribute]).value = ''; // clear out the dialog's inputs
-		});
+		this.props.onCreate(newHerb);
+		this.state = {
+            englishName: '',
+            description: '',
+        };
 		window.location = "#";
 	}
 
+	handleChange(event) {
+        const name = event.target.name;
+        const value = event.target.value;
+        this.setState({[name]: value});
+    }
+
 	render() {
-		var inputs = this.props.attributes.map(attribute =>
-			<p key={attribute}>
-				<input type="text" placeholder={attribute} ref={attribute} className="field" />
-			</p>
-		);
+	    const { englishName, description } = this.state;
+
+        const inputs = [
+            <p key='englishName'>
+                <input type="text" name='englishName' placeholder='englishName' ref='englishName' className="field" value={this.state.englishName} onChange={this.handleChange}/>
+            </p>,
+            <p key='herbCategory' placeholder='choose one'>
+                <select ref='herbCategory' defaultValue=''>
+                    <option value="" disabled>Select Category</option>
+                    <option value="PURGE_FIRE">Purge Fire</option>
+                    <option value="RESOLVE_TOXICITY">Resolve Toxicity</option>
+                </select>
+            </p>,
+            <p key='description'>
+                <input type="text" name='description' placeholder='description' ref='description' className="field" value={this.state.description} onChange={this.handleChange}/>
+            </p>
+        ];
+
+        let formValid = this.state.englishName.length > 0 && this.state.description.length > 0;
+
 		return (
 			<div>
-				<a href="#createEmployee">Create</a>
+				<a href="#createHerb">Create</a>
 
-				<div id="createEmployee" className="modalDialog">
+				<div id="createHerb" className="modalDialog">
 					<div>
 						<a href="#" title="Close" className="close">X</a>
 
@@ -203,7 +216,7 @@ class CreateDialog extends React.Component {
 
 						<form>
 							{inputs}
-							<button onClick={this.handleSubmit}>Create</button>
+							<button onClick={this.handleSubmit} disabled={!formValid}>Create</button>
 						</form>
 					</div>
 				</div>
@@ -211,9 +224,7 @@ class CreateDialog extends React.Component {
 		)
 	}
 };
-// end::create-dialog[]
 
-// tag::update-dialog[]
 class UpdateDialog extends React.Component {
 
 	constructor(props) {
@@ -223,24 +234,33 @@ class UpdateDialog extends React.Component {
 
 	handleSubmit(e) {
 		e.preventDefault();
-		var updatedEmployee = {};
+		var updatedHerb = {};
 		this.props.attributes.forEach(attribute => {
-			updatedEmployee[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
+			updatedHerb[attribute] = ReactDOM.findDOMNode(this.refs[attribute]).value.trim();
 		});
-		this.props.onUpdate(this.props.herb, updatedEmployee);
+		this.props.onUpdate(this.props.herb, updatedHerb);
 		window.location = "#";
 	}
 
 	render() {
-		var inputs = this.props.attributes.map(attribute =>
-				<p key={this.props.herb.entity[attribute]}>
-					<input type="text" placeholder={attribute}
-						   defaultValue={this.props.herb.entity[attribute]}
-						   ref={attribute} className="field" />
-				</p>
-		);
+		var inputs = this.props.attributes.map(attribute => {
+            if (attribute == 'englishName' || attribute == 'description') {
+                return <p key={this.props.herb.entity[attribute]}>
+                    <input type="text" placeholder={attribute}
+                           defaultValue={this.props.herb.entity[attribute]}
+                           ref={attribute} className="field" />
+                </p>
+            } else if (attribute == 'herbCategory') {
+                return <p key={this.props.herb.entity[attribute]}>
+                    <select ref={attribute} defaultValue={this.props.herb.entity[attribute]}>
+                      <option value="PURGE_FIRE">Purge Fire</option>
+                      <option value="RESOLVE_TOXICITY">Resolve Toxicity</option>
+                    </select>
+                </p>
+            }
+        });
 
-		var dialogId = "updateEmployee-" + this.props.herb.entity._links.self.href;
+		var dialogId = "updateHerb-" + this.props.herb.entity._links.self.href;
 
 		return (
 			<div key={this.props.herb.entity._links.self.href}>
@@ -262,7 +282,6 @@ class UpdateDialog extends React.Component {
 	}
 
 };
-// end::update-dialog[]
 
 
 class HerbList extends React.Component {
@@ -337,6 +356,7 @@ class HerbList extends React.Component {
 					<tbody>
 						<tr>
 							<th>English Name</th>
+							<th>Herb Category</th>
 							<th>Description</th>
 							<th></th>
 							<th></th>
@@ -366,6 +386,7 @@ class Herb extends React.Component {
 		return (
 			<tr>
 				<td>{this.props.herb.entity.englishName}</td>
+				<td>{this.props.herb.entity.herbCategory}</td>
 				<td>{this.props.herb.entity.description}</td>
 				<td>
 					<UpdateDialog herb={this.props.herb}

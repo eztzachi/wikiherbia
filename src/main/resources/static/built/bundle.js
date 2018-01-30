@@ -48,6 +48,8 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -71,7 +73,7 @@
 	
 			var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 	
-			_this.state = { herbs: [], attributes: [], pageSize: 2, links: {} };
+			_this.state = { herbs: [], attributes: [], pageSize: 10, links: {} };
 			_this.updatePageSize = _this.updatePageSize.bind(_this);
 			_this.onCreate = _this.onCreate.bind(_this);
 			_this.onUpdate = _this.onUpdate.bind(_this);
@@ -80,33 +82,30 @@
 			return _this;
 		}
 	
-		// tag::follow-2[]
-	
-	
 		_createClass(App, [{
 			key: 'loadFromServer',
 			value: function loadFromServer(pageSize) {
 				var _this2 = this;
 	
-				follow(client, root, [{ rel: 'herbs', params: { size: pageSize } }]).then(function (employeeCollection) {
+				follow(client, root, [{ rel: 'herbs', params: { size: pageSize } }]).then(function (herbCollection) {
 					return client({
 						method: 'GET',
-						path: employeeCollection.entity._links.profile.href,
+						path: herbCollection.entity._links.profile.href,
 						headers: { 'Accept': 'application/schema+json' }
 					}).then(function (schema) {
 						_this2.schema = schema.entity;
-						_this2.links = employeeCollection.entity._links;
-						return employeeCollection;
+						_this2.links = herbCollection.entity._links;
+						return herbCollection;
 					});
-				}).then(function (employeeCollection) {
-					return employeeCollection.entity._embedded.herbs.map(function (herb) {
+				}).then(function (herbCollection) {
+					return herbCollection.entity._embedded.herbs.map(function (herb) {
 						return client({
 							method: 'GET',
 							path: herb._links.self.href
 						});
 					});
-				}).then(function (employeePromises) {
-					return when.all(employeePromises);
+				}).then(function (herbPromises) {
+					return when.all(herbPromises);
 				}).done(function (herbs) {
 					_this2.setState({
 						herbs: herbs,
@@ -116,13 +115,9 @@
 					});
 				});
 			}
-			// end::follow-2[]
-	
-			// tag::create[]
-	
 		}, {
 			key: 'onCreate',
-			value: function onCreate(newEmployee) {
+			value: function onCreate(newHerb) {
 				var _this3 = this;
 	
 				var self = this;
@@ -130,7 +125,7 @@
 					return client({
 						method: 'POST',
 						path: response.entity._links.self.href,
-						entity: newEmployee,
+						entity: newHerb,
 						headers: { 'Content-Type': 'application/json' }
 					});
 				}).then(function (response) {
@@ -143,19 +138,15 @@
 					}
 				});
 			}
-			// end::create[]
-	
-			// tag::update[]
-	
 		}, {
 			key: 'onUpdate',
-			value: function onUpdate(herb, updatedEmployee) {
+			value: function onUpdate(herb, updatedHerb) {
 				var _this4 = this;
 	
 				client({
 					method: 'PUT',
 					path: herb.entity._links.self.href,
-					entity: updatedEmployee,
+					entity: updatedHerb,
 					headers: {
 						'Content-Type': 'application/json',
 						'If-Match': herb.headers.Etag
@@ -168,10 +159,6 @@
 					}
 				});
 			}
-			// end::update[]
-	
-			// tag::delete[]
-	
 		}, {
 			key: 'onDelete',
 			value: function onDelete(herb) {
@@ -181,10 +168,6 @@
 					_this5.loadFromServer(_this5.state.pageSize);
 				});
 			}
-			// end::delete[]
-	
-			// tag::navigate[]
-	
 		}, {
 			key: 'onNavigate',
 			value: function onNavigate(navUri) {
@@ -193,17 +176,17 @@
 				client({
 					method: 'GET',
 					path: navUri
-				}).then(function (employeeCollection) {
-					_this6.links = employeeCollection.entity._links;
+				}).then(function (herbCollection) {
+					_this6.links = herbCollection.entity._links;
 	
-					return employeeCollection.entity._embedded.herbs.map(function (herb) {
+					return herbCollection.entity._embedded.herbs.map(function (herb) {
 						return client({
 							method: 'GET',
 							path: herb._links.self.href
 						});
 					});
-				}).then(function (employeePromises) {
-					return when.all(employeePromises);
+				}).then(function (herbPromises) {
+					return when.all(herbPromises);
 				}).done(function (herbs) {
 					_this6.setState({
 						herbs: herbs,
@@ -213,10 +196,6 @@
 					});
 				});
 			}
-			// end::navigate[]
-	
-			// tag::update-page-size[]
-	
 		}, {
 			key: 'updatePageSize',
 			value: function updatePageSize(pageSize) {
@@ -224,17 +203,11 @@
 					this.loadFromServer(pageSize);
 				}
 			}
-			// end::update-page-size[]
-	
-			// tag::follow-1[]
-	
 		}, {
 			key: 'componentDidMount',
 			value: function componentDidMount() {
 				this.loadFromServer(this.state.pageSize);
 			}
-			// end::follow-1[]
-	
 		}, {
 			key: 'render',
 			value: function render() {
@@ -257,9 +230,6 @@
 		return App;
 	}(React.Component);
 	
-	// tag::create-dialog[]
-	
-	
 	var CreateDialog = function (_React$Component2) {
 		_inherits(CreateDialog, _React$Component2);
 	
@@ -268,6 +238,12 @@
 	
 			var _this7 = _possibleConstructorReturn(this, (CreateDialog.__proto__ || Object.getPrototypeOf(CreateDialog)).call(this, props));
 	
+			_this7.handleSubmit = _this7.handleSubmit.bind(_this7);
+			_this7.state = {
+				englishName: '',
+				description: ''
+			};
+			_this7.handleChange = _this7.handleChange.bind(_this7);
 			_this7.handleSubmit = _this7.handleSubmit.bind(_this7);
 			return _this7;
 		}
@@ -278,37 +254,77 @@
 				var _this8 = this;
 	
 				e.preventDefault();
-				var newEmployee = {};
+				var newHerb = {};
 				this.props.attributes.forEach(function (attribute) {
-					newEmployee[attribute] = ReactDOM.findDOMNode(_this8.refs[attribute]).value.trim();
+					newHerb[attribute] = ReactDOM.findDOMNode(_this8.refs[attribute]).value.trim();
 				});
-				this.props.onCreate(newEmployee);
-				this.props.attributes.forEach(function (attribute) {
-					ReactDOM.findDOMNode(_this8.refs[attribute]).value = ''; // clear out the dialog's inputs
-				});
+				this.props.onCreate(newHerb);
+				this.state = {
+					englishName: '',
+					description: ''
+				};
 				window.location = "#";
+			}
+		}, {
+			key: 'handleChange',
+			value: function handleChange(event) {
+				var name = event.target.name;
+				var value = event.target.value;
+				this.setState(_defineProperty({}, name, value));
 			}
 		}, {
 			key: 'render',
 			value: function render() {
-				var inputs = this.props.attributes.map(function (attribute) {
-					return React.createElement(
-						'p',
-						{ key: attribute },
-						React.createElement('input', { type: 'text', placeholder: attribute, ref: attribute, className: 'field' })
-					);
-				});
+				var _state = this.state,
+				    englishName = _state.englishName,
+				    description = _state.description;
+	
+	
+				var inputs = [React.createElement(
+					'p',
+					{ key: 'englishName' },
+					React.createElement('input', { type: 'text', name: 'englishName', placeholder: 'englishName', ref: 'englishName', className: 'field', value: this.state.englishName, onChange: this.handleChange })
+				), React.createElement(
+					'p',
+					{ key: 'herbCategory', placeholder: 'choose one' },
+					React.createElement(
+						'select',
+						{ ref: 'herbCategory', defaultValue: '' },
+						React.createElement(
+							'option',
+							{ value: '', disabled: true },
+							'Select Category'
+						),
+						React.createElement(
+							'option',
+							{ value: 'PURGE_FIRE' },
+							'Purge Fire'
+						),
+						React.createElement(
+							'option',
+							{ value: 'RESOLVE_TOXICITY' },
+							'Resolve Toxicity'
+						)
+					)
+				), React.createElement(
+					'p',
+					{ key: 'description' },
+					React.createElement('input', { type: 'text', name: 'description', placeholder: 'description', ref: 'description', className: 'field', value: this.state.description, onChange: this.handleChange })
+				)];
+	
+				var formValid = this.state.englishName.length > 0 && this.state.description.length > 0;
+	
 				return React.createElement(
 					'div',
 					null,
 					React.createElement(
 						'a',
-						{ href: '#createEmployee' },
+						{ href: '#createHerb' },
 						'Create'
 					),
 					React.createElement(
 						'div',
-						{ id: 'createEmployee', className: 'modalDialog' },
+						{ id: 'createHerb', className: 'modalDialog' },
 						React.createElement(
 							'div',
 							null,
@@ -328,7 +344,7 @@
 								inputs,
 								React.createElement(
 									'button',
-									{ onClick: this.handleSubmit },
+									{ onClick: this.handleSubmit, disabled: !formValid },
 									'Create'
 								)
 							)
@@ -342,9 +358,6 @@
 	}(React.Component);
 	
 	;
-	// end::create-dialog[]
-	
-	// tag::update-dialog[]
 	
 	var UpdateDialog = function (_React$Component3) {
 		_inherits(UpdateDialog, _React$Component3);
@@ -364,11 +377,11 @@
 				var _this10 = this;
 	
 				e.preventDefault();
-				var updatedEmployee = {};
+				var updatedHerb = {};
 				this.props.attributes.forEach(function (attribute) {
-					updatedEmployee[attribute] = ReactDOM.findDOMNode(_this10.refs[attribute]).value.trim();
+					updatedHerb[attribute] = ReactDOM.findDOMNode(_this10.refs[attribute]).value.trim();
 				});
-				this.props.onUpdate(this.props.herb, updatedEmployee);
+				this.props.onUpdate(this.props.herb, updatedHerb);
 				window.location = "#";
 			}
 		}, {
@@ -377,16 +390,37 @@
 				var _this11 = this;
 	
 				var inputs = this.props.attributes.map(function (attribute) {
-					return React.createElement(
-						'p',
-						{ key: _this11.props.herb.entity[attribute] },
-						React.createElement('input', { type: 'text', placeholder: attribute,
-							defaultValue: _this11.props.herb.entity[attribute],
-							ref: attribute, className: 'field' })
-					);
+					if (attribute == 'englishName' || attribute == 'description') {
+						return React.createElement(
+							'p',
+							{ key: _this11.props.herb.entity[attribute] },
+							React.createElement('input', { type: 'text', placeholder: attribute,
+								defaultValue: _this11.props.herb.entity[attribute],
+								ref: attribute, className: 'field' })
+						);
+					} else if (attribute == 'herbCategory') {
+						return React.createElement(
+							'p',
+							{ key: _this11.props.herb.entity[attribute] },
+							React.createElement(
+								'select',
+								{ ref: attribute, defaultValue: _this11.props.herb.entity[attribute] },
+								React.createElement(
+									'option',
+									{ value: 'PURGE_FIRE' },
+									'Purge Fire'
+								),
+								React.createElement(
+									'option',
+									{ value: 'RESOLVE_TOXICITY' },
+									'Resolve Toxicity'
+								)
+							)
+						);
+					}
 				});
 	
-				var dialogId = "updateEmployee-" + this.props.herb.entity._links.self.href;
+				var dialogId = "updateHerb-" + this.props.herb.entity._links.self.href;
 	
 				return React.createElement(
 					'div',
@@ -432,8 +466,6 @@
 	}(React.Component);
 	
 	;
-	// end::update-dialog[]
-	
 	
 	var HerbList = function (_React$Component4) {
 		_inherits(HerbList, _React$Component4);
@@ -560,6 +592,11 @@
 								React.createElement(
 									'th',
 									null,
+									'Herb Category'
+								),
+								React.createElement(
+									'th',
+									null,
 									'Description'
 								),
 								React.createElement('th', null),
@@ -607,6 +644,11 @@
 						'td',
 						null,
 						this.props.herb.entity.englishName
+					),
+					React.createElement(
+						'td',
+						null,
+						this.props.herb.entity.herbCategory
 					),
 					React.createElement(
 						'td',

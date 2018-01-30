@@ -16,6 +16,7 @@ public class Herb {
     @GeneratedValue
     Long id;
     private String englishName;
+    private HerbCategory herbCategory;
     private String description;
 
     private @Version
@@ -24,8 +25,9 @@ public class Herb {
 
     private Herb() {}
 
-    public Herb(String englishName, String description) {
+    public Herb(String englishName, HerbCategory herbCategory, String description) {
         this.englishName = englishName;
+        this.herbCategory = herbCategory;
         this.description = description;
     }
 }

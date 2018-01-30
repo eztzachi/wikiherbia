@@ -34,8 +34,8 @@ public class DatabaseLoader implements CommandLineRunner {
 
 	@Override
 	public void run(String... strings) throws Exception {
-		this.repository.save(new Herb("Frodo", "it can kill you"));
-		this.repository.save(new Herb("Bilbo", "it can cure you"));
-		this.repository.save(new Herb("Bai Zho", "it does something"));
+		this.repository.save(new Herb("Frodo", HerbCategory.PURGE_FIRE ,"it can kill you"));
+		this.repository.save(new Herb("Bilbo", HerbCategory.PURGE_FIRE,"it can cure you"));
+		this.repository.save(new Herb("Pippin", HerbCategory.RESOLVE_TOXICITY,"it does something"));
 	}
 }
