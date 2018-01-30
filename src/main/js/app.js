@@ -1,7 +1,13 @@
 'use strict';
 
+import {
+  BrowserRouter as Router,
+  Route,
+  Link
+} from 'react-router-dom'
 const React = require('react');
 const ReactDOM = require('react-dom')
+const HerbQuiz = require('./quiz');
 const when = require('when');
 const client = require('./client');
 
@@ -400,7 +406,23 @@ class Herb extends React.Component {
 	}
 }
 
+const MainApp = () => (
+  <Router>
+    <div>
+      <ul>
+        <li><Link to="/">Home</Link></li>
+        <li><Link to="/quiz">Quiz</Link></li>
+      </ul>
+
+      <hr/>
+
+      <Route exact path="/" component={App}/>
+      <Route path="/quiz" component={HerbQuiz}/>
+    </div>
+  </Router>
+)
+
 ReactDOM.render(
-	<App />,
+	<MainApp />,
 	document.getElementById('react')
 )
