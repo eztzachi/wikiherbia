@@ -26224,10 +26224,36 @@
 	    function QuestionList(props) {
 	        _classCallCheck(this, QuestionList);
 	
-	        return _possibleConstructorReturn(this, (QuestionList.__proto__ || Object.getPrototypeOf(QuestionList)).call(this, props));
+	        var _this3 = _possibleConstructorReturn(this, (QuestionList.__proto__ || Object.getPrototypeOf(QuestionList)).call(this, props));
+	
+	        _this3.state = {
+	            qanda: {}
+	        };
+	        _this3.handleSubmit = _this3.handleSubmit.bind(_this3);
+	        _this3.handleAnswerChange = _this3.handleAnswerChange.bind(_this3);
+	        return _this3;
 	    }
 	
 	    _createClass(QuestionList, [{
+	        key: 'handleSubmit',
+	        value: function handleSubmit(e) {
+	            e.preventDefault();
+	            client({
+	                method: 'POST',
+	                path: '/api/quiz/submission',
+	                entity: { mapping: this.state.qanda },
+	                headers: { 'Content-Type': 'application/json' }
+	            }).done(function (response) {});
+	        }
+	    }, {
+	        key: 'handleAnswerChange',
+	        value: function handleAnswerChange(id, value) {
+	            console.log(value);
+	            var qanda = this.state.qanda;
+	            qanda[id] = value;
+	            this.setState(qanda);
+	        }
+	    }, {
 	        key: 'render',
 	        value: function render() {
 	            var _this4 = this;
@@ -26235,14 +26261,20 @@
 	            var questions = this.props.questions.map(function (question) {
 	                return React.createElement(Question, { key: question.entity._links.self.href,
 	                    question: question,
-	                    attributes: _this4.props.attributes
+	                    attributes: _this4.props.attributes,
+	                    onChange: _this4.handleAnswerChange
 	                });
 	            });
 	
 	            return React.createElement(
-	                'div',
-	                null,
-	                questions
+	                'form',
+	                { onSubmit: this.handleSubmit },
+	                React.createElement(
+	                    'div',
+	                    null,
+	                    questions
+	                ),
+	                React.createElement('input', { type: 'submit', value: 'Submit' })
 	            );
 	        }
 	    }]);
@@ -26259,12 +26291,23 @@
 	        var _this5 = _possibleConstructorReturn(this, (Question.__proto__ || Object.getPrototypeOf(Question)).call(this, props));
 	
 	        _this5.state = {
-	            herb: null
+	            herb: null,
+	            value: ''
 	        };
+	        _this5.handleChange = _this5.handleChange.bind(_this5);
 	        return _this5;
 	    }
 	
 	    _createClass(Question, [{
+	        key: 'handleChange',
+	        value: function handleChange(event) {
+	            this.setState({
+	                herb: this.state.herb,
+	                value: event.target.value
+	            });
+	            this.props.onChange(this.props.question.entity.id, event.target.value);
+	        }
+	    }, {
 	        key: 'loadFromServer',
 	        value: function loadFromServer() {
 	            var _this6 = this;
@@ -26274,7 +26317,8 @@
 	                path: this.props.question.entity._links.herb.href
 	            }).done(function (response) {
 	                _this6.setState({
-	                    herb: response.entity
+	                    herb: response.entity,
+	                    value: _this6.state.value
 	                });
 	            });
 	        }
@@ -26295,7 +26339,11 @@
 	                return React.createElement(
 	                    'ul',
 	                    { key: option },
-	                    React.createElement('input', { type: 'radio', name: _this7.state.herb.englishName }),
+	                    React.createElement('input', { type: 'radio',
+	                        name: _this7.state.herb.englishName,
+	                        value: option,
+	                        onChange: _this7.handleChange
+	                    }),
 	                    React.createElement(
 	                        'label',
 	                        null,
@@ -26308,7 +26356,7 @@
 	                'div',
 	                null,
 	                this.props.question.entity.textTemplate,
-	                ' of ',
+	                ' ',
 	                this.state.herb.englishName,
 	                answers
 	            );

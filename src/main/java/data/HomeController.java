@@ -15,7 +15,11 @@
  */
 package data;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -27,6 +31,12 @@ public class HomeController {
 	@RequestMapping(value = "/")
 	public String index() {
 		return "index";
+	}
+
+	@PostMapping(value = "/api/quiz/submission")
+	public ResponseEntity<?> greetingSubmit(@RequestBody QuizSubmission quizSubmission) {
+		System.out.println(quizSubmission.getMapping());
+		return ResponseEntity.noContent().build();
 	}
 
 }

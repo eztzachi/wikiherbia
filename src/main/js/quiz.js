@@ -64,20 +64,48 @@ class QuestionList extends React.Component {
 
 	constructor(props) {
 		super(props);
+		this.state = {
+		    qanda: {},
+		}
+		this.handleSubmit = this.handleSubmit.bind(this);
+		this.handleAnswerChange = this.handleAnswerChange.bind(this);
 	}
+
+	handleSubmit(e) {
+    	e.preventDefault();
+    	client({
+            method: 'POST',
+            path: '/api/quiz/submission',
+            entity: {mapping: this.state.qanda},
+            headers: {'Content-Type': 'application/json'}
+        }).done(response => {}
+
+        );
+    }
+
+    handleAnswerChange(id, value) {
+        console.log(value);
+        let qanda = this.state.qanda;
+        qanda[id] = value;
+        this.setState(qanda: qanda);
+    }
 
 	render() {
 		var questions = this.props.questions.map(question =>
                     <Question key={question.entity._links.self.href}
                               question={question}
                               attributes={this.props.attributes}
+                              onChange={this.handleAnswerChange}
                                />
 		);
 
 		return (
-			<div>
-                {questions}
-            </div>
+		    <form onSubmit={this.handleSubmit}>
+                <div>
+                    {questions}
+                </div>
+                <input type="submit" value="Submit" />
+            </form>
 		)
 	}
 }
@@ -87,7 +115,17 @@ class Question extends React.Component {
 		super(props);
 		this.state = {
             herb: null,
+            value: '',
         };
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(event) {
+        this.setState({
+            herb: this.state.herb,
+            value: event.target.value
+        });
+        this.props.onChange(this.props.question.entity.id, event.target.value);
     }
 
 	loadFromServer() {
@@ -96,7 +134,8 @@ class Question extends React.Component {
             path: this.props.question.entity._links.herb.href,
         }).done(response => {
             this.setState({
-                herb: response.entity
+                herb: response.entity,
+                value: this.state.value
             });
         });
     }
@@ -111,7 +150,11 @@ class Question extends React.Component {
 	    }
 	    var answers = this.props.question.entity.options.map(option =>
 	        <ul key={option}>
-                <input type="radio" name={this.state.herb.englishName} />
+                <input type="radio"
+                    name={this.state.herb.englishName}
+                    value={option}
+                    onChange={this.handleChange}
+                    />
                   <label>
                     {option}
                 </label>
@@ -120,7 +163,7 @@ class Question extends React.Component {
 
 		return (
 			<div>
-			    {this.props.question.entity.textTemplate} of {this.state.herb.englishName}
+			    {this.props.question.entity.textTemplate} {this.state.herb.englishName}
 			    {answers}
 			</div>
 		)

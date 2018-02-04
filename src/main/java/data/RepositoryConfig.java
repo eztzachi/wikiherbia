@@ -9,6 +9,6 @@ public class RepositoryConfig extends RepositoryRestConfigurerAdapter {
     @Override
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config) {
         config.exposeIdsFor(Herb.class);
-        config.exposeIdsFor(HerbCategory.class);
+        config.exposeIdsFor(HerbCategoryQuestion.class);
     }
 }
