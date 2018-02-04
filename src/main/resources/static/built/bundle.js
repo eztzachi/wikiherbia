@@ -678,7 +678,7 @@
 	
 	var MainApp = function MainApp() {
 		return React.createElement(
-			_reactRouterDom.BrowserRouter,
+			_reactRouterDom.HashRouter,
 			null,
 			React.createElement(
 				'div',
@@ -26139,17 +26139,64 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	var React = __webpack_require__(5);
+	var when = __webpack_require__(225);
+	var client = __webpack_require__(245);
+	
+	var follow = __webpack_require__(273); // function to hop multiple links by "rel"
+	
+	var root = '/api';
 	
 	var HerbQuiz = function (_React$Component) {
 	    _inherits(HerbQuiz, _React$Component);
 	
-	    function HerbQuiz() {
+	    function HerbQuiz(props) {
 	        _classCallCheck(this, HerbQuiz);
 	
-	        return _possibleConstructorReturn(this, (HerbQuiz.__proto__ || Object.getPrototypeOf(HerbQuiz)).apply(this, arguments));
+	        var _this = _possibleConstructorReturn(this, (HerbQuiz.__proto__ || Object.getPrototypeOf(HerbQuiz)).call(this, props));
+	
+	        _this.state = { questions: [], attributes: [], pageSize: 10, links: {} };
+	        return _this;
 	    }
 	
 	    _createClass(HerbQuiz, [{
+	        key: 'loadFromServer',
+	        value: function loadFromServer(pageSize) {
+	            var _this2 = this;
+	
+	            follow(client, root, [{ rel: 'herbCategoryQuestions', params: { size: pageSize } }]).then(function (questionCollection) {
+	                return client({
+	                    method: 'GET',
+	                    path: questionCollection.entity._links.profile.href,
+	                    headers: { 'Accept': 'application/schema+json' }
+	                }).then(function (schema) {
+	                    _this2.schema = schema.entity;
+	                    _this2.links = questionCollection.entity._links;
+	                    return questionCollection;
+	                });
+	            }).then(function (questionCollection) {
+	                return questionCollection.entity._embedded.herbCategoryQuestions.map(function (question) {
+	                    return client({
+	                        method: 'GET',
+	                        path: question._links.self.href
+	                    });
+	                });
+	            }).then(function (questionPromises) {
+	                return when.all(questionPromises);
+	            }).done(function (questions) {
+	                _this2.setState({
+	                    questions: questions,
+	                    attributes: Object.keys(_this2.schema.properties),
+	                    pageSize: pageSize,
+	                    links: _this2.links
+	                });
+	            });
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.loadFromServer(this.state.pageSize);
+	        }
+	    }, {
 	        key: 'render',
 	        value: function render() {
 	            return React.createElement(
@@ -26158,13 +26205,117 @@
 	                React.createElement(
 	                    'h2',
 	                    null,
-	                    'Quiz'
-	                )
+	                    'Quizzzzzzz'
+	                ),
+	                React.createElement(QuestionList, { questions: this.state.questions,
+	                    links: this.state.links,
+	                    pageSize: this.state.pageSize,
+	                    attributes: this.state.attributes })
 	            );
 	        }
 	    }]);
 	
 	    return HerbQuiz;
+	}(React.Component);
+	
+	var QuestionList = function (_React$Component2) {
+	    _inherits(QuestionList, _React$Component2);
+	
+	    function QuestionList(props) {
+	        _classCallCheck(this, QuestionList);
+	
+	        return _possibleConstructorReturn(this, (QuestionList.__proto__ || Object.getPrototypeOf(QuestionList)).call(this, props));
+	    }
+	
+	    _createClass(QuestionList, [{
+	        key: 'render',
+	        value: function render() {
+	            var _this4 = this;
+	
+	            var questions = this.props.questions.map(function (question) {
+	                return React.createElement(Question, { key: question.entity._links.self.href,
+	                    question: question,
+	                    attributes: _this4.props.attributes
+	                });
+	            });
+	
+	            return React.createElement(
+	                'div',
+	                null,
+	                questions
+	            );
+	        }
+	    }]);
+	
+	    return QuestionList;
+	}(React.Component);
+	
+	var Question = function (_React$Component3) {
+	    _inherits(Question, _React$Component3);
+	
+	    function Question(props) {
+	        _classCallCheck(this, Question);
+	
+	        var _this5 = _possibleConstructorReturn(this, (Question.__proto__ || Object.getPrototypeOf(Question)).call(this, props));
+	
+	        _this5.state = {
+	            herb: null
+	        };
+	        return _this5;
+	    }
+	
+	    _createClass(Question, [{
+	        key: 'loadFromServer',
+	        value: function loadFromServer() {
+	            var _this6 = this;
+	
+	            client({
+	                method: 'GET',
+	                path: this.props.question.entity._links.herb.href
+	            }).done(function (response) {
+	                _this6.setState({
+	                    herb: response.entity
+	                });
+	            });
+	        }
+	    }, {
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	            this.loadFromServer();
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this7 = this;
+	
+	            if (this.state.herb === null) {
+	                return false;
+	            }
+	            var answers = this.props.question.entity.options.map(function (option) {
+	                return React.createElement(
+	                    'ul',
+	                    { key: option },
+	                    React.createElement('input', { type: 'radio', name: _this7.state.herb.englishName }),
+	                    React.createElement(
+	                        'label',
+	                        null,
+	                        option
+	                    )
+	                );
+	            });
+	
+	            return React.createElement(
+	                'div',
+	                null,
+	                this.props.question.entity.textTemplate,
+	                ' of ',
+	                this.state.herb.englishName,
+	                answers
+	            );
+	        }
+	    }]);
+	
+	    return Question;
 	}(React.Component);
 	
 	module.exports = HerbQuiz;
