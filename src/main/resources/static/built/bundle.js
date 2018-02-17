@@ -26154,47 +26154,28 @@
 	
 	        var _this = _possibleConstructorReturn(this, (HerbQuiz.__proto__ || Object.getPrototypeOf(HerbQuiz)).call(this, props));
 	
-	        _this.state = { questions: [], attributes: [], pageSize: 10, links: {} };
+	        _this.state = { questions: [] };
 	        return _this;
 	    }
 	
 	    _createClass(HerbQuiz, [{
 	        key: 'loadFromServer',
-	        value: function loadFromServer(pageSize) {
+	        value: function loadFromServer() {
 	            var _this2 = this;
 	
-	            follow(client, root, [{ rel: 'herbCategoryQuestions', params: { size: pageSize } }]).then(function (questionCollection) {
-	                return client({
-	                    method: 'GET',
-	                    path: questionCollection.entity._links.profile.href,
-	                    headers: { 'Accept': 'application/schema+json' }
-	                }).then(function (schema) {
-	                    _this2.schema = schema.entity;
-	                    _this2.links = questionCollection.entity._links;
-	                    return questionCollection;
-	                });
-	            }).then(function (questionCollection) {
-	                return questionCollection.entity._embedded.herbCategoryQuestions.map(function (question) {
-	                    return client({
-	                        method: 'GET',
-	                        path: question._links.self.href
-	                    });
-	                });
-	            }).then(function (questionPromises) {
-	                return when.all(questionPromises);
-	            }).done(function (questions) {
+	            client({
+	                method: 'GET',
+	                path: '/api/quizzes/1'
+	            }).done(function (quiz) {
 	                _this2.setState({
-	                    questions: questions,
-	                    attributes: Object.keys(_this2.schema.properties),
-	                    pageSize: pageSize,
-	                    links: _this2.links
+	                    questions: quiz.entity.questions
 	                });
 	            });
 	        }
 	    }, {
 	        key: 'componentDidMount',
 	        value: function componentDidMount() {
-	            this.loadFromServer(this.state.pageSize);
+	            this.loadFromServer();
 	        }
 	    }, {
 	        key: 'render',
@@ -26207,10 +26188,7 @@
 	                    null,
 	                    'Quizzzzzzz'
 	                ),
-	                React.createElement(QuestionList, { questions: this.state.questions,
-	                    links: this.state.links,
-	                    pageSize: this.state.pageSize,
-	                    attributes: this.state.attributes })
+	                React.createElement(QuestionList, { questions: this.state.questions })
 	            );
 	        }
 	    }]);
@@ -26248,7 +26226,6 @@
 	    }, {
 	        key: 'handleAnswerChange',
 	        value: function handleAnswerChange(id, value) {
-	            console.log(value);
 	            var qanda = this.state.qanda;
 	            qanda[id] = value;
 	            this.setState(qanda);
@@ -26259,9 +26236,8 @@
 	            var _this4 = this;
 	
 	            var questions = this.props.questions.map(function (question) {
-	                return React.createElement(Question, { key: question.entity._links.self.href,
+	                return React.createElement(Question, { key: question.id,
 	                    question: question,
-	                    attributes: _this4.props.attributes,
 	                    onChange: _this4.handleAnswerChange
 	                });
 	            });
@@ -26305,7 +26281,8 @@
 	                herb: this.state.herb,
 	                value: event.target.value
 	            });
-	            this.props.onChange(this.props.question.entity.id, event.target.value);
+	            console.log(event.target);
+	            this.props.onChange(this.props.question.id, event.target.value);
 	        }
 	    }, {
 	        key: 'loadFromServer',
@@ -26314,7 +26291,7 @@
 	
 	            client({
 	                method: 'GET',
-	                path: this.props.question.entity._links.herb.href
+	                path: this.props.question._links.herb.href
 	            }).done(function (response) {
 	                _this6.setState({
 	                    herb: response.entity,
@@ -26335,7 +26312,7 @@
 	            if (this.state.herb === null) {
 	                return false;
 	            }
-	            var answers = this.props.question.entity.options.map(function (option) {
+	            var answers = this.props.question.options.map(function (option) {
 	                return React.createElement(
 	                    'ul',
 	                    { key: option },
@@ -26355,7 +26332,7 @@
 	            return React.createElement(
 	                'div',
 	                null,
-	                this.props.question.entity.textTemplate,
+	                this.props.question.textTemplate,
 	                ' ',
 	                this.state.herb.englishName,
 	                answers

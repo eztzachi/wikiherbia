@@ -34,7 +34,7 @@ public class HomeController {
 	}
 
 	@PostMapping(value = "/api/quiz/submission")
-	public ResponseEntity<?> greetingSubmit(@RequestBody QuizSubmission quizSubmission) {
+	public ResponseEntity<?> quizSubmission(@RequestBody QuizSubmission quizSubmission) {
 		System.out.println(quizSubmission.getMapping());
 		return ResponseEntity.noContent().build();
 	}

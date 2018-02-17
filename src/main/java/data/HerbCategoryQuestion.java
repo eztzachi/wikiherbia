@@ -1,5 +1,6 @@
 package data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -7,7 +8,7 @@ import java.util.Collection;
 
 @Data
 @Entity
-public class HerbCategoryQuestion {
+public class HerbCategoryQuestion implements Question{
 
     private @Id
     @GeneratedValue
@@ -17,11 +18,14 @@ public class HerbCategoryQuestion {
     private Collection<HerbCategory> options;
     @ManyToOne
     private Herb herb;
+    @JsonIgnore
+    int correctAnswer;
 
     private HerbCategoryQuestion() {}
 
-    public HerbCategoryQuestion(Collection<HerbCategory> options, Herb herb) {
+    public HerbCategoryQuestion(Collection<HerbCategory> options, Herb herb, int correctAnswer) {
         this.options = options;
         this.herb = herb;
+        this.correctAnswer = correctAnswer;
     }
 }
