@@ -10,13 +10,22 @@ const root = '/api';
 class HerbQuiz extends React.Component {
     constructor(props) {
 		super(props);
-		this.state = {questions: []};
+		this.state = {questions: [], quizID: null};
 	}
 
     loadFromServer() {
         client({
             method: 'GET',
-            path: '/api/quizzes/1',
+            path: '/api/quiz',
+        }).then(response => {
+            this.setState({
+                quizID: response.entity,
+            });
+        }).then(response => {
+            return client({
+                method: 'GET',
+                path: '/api/quizzes/' + this.state.quizID,
+            });
         }).done(quiz => {
             this.setState({
                 questions: quiz.entity.questions,
@@ -31,7 +40,7 @@ class HerbQuiz extends React.Component {
     render() {
         return <div>
                    <h2>Quizzzzzzz</h2>
-                   <QuestionList questions={this.state.questions} />
+                   <QuestionList quizID={this.state.quizID} questions={this.state.questions} />
                  </div>;
     }
 }
@@ -52,7 +61,7 @@ class QuestionList extends React.Component {
     	client({
             method: 'POST',
             path: '/api/quiz/submission',
-            entity: {mapping: this.state.qanda},
+            entity: {quizID: this.props.quizID, mapping: this.state.qanda},
             headers: {'Content-Type': 'application/json'}
         }).done(response => {}
 
@@ -99,7 +108,6 @@ class Question extends React.Component {
             herb: this.state.herb,
             value: event.target.value
         });
-        console.log(event.target);
         this.props.onChange(this.props.question.id, event.target.value);
     }
 

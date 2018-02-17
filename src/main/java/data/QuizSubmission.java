@@ -4,11 +4,12 @@ import java.util.Map;
 
 public class QuizSubmission {
 
-    private Map<String, String> mapping;
-    int quizID;
+    private Map<Integer, String> mapping;
+    private long quizID;
 
-    public Map<String, String> getMapping() {
+    public Map<Integer, String> getMapping() {
         return mapping;
     }
+    public long getQuizID() {return quizID;}
 
 }

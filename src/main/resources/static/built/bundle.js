@@ -26154,7 +26154,7 @@
 	
 	        var _this = _possibleConstructorReturn(this, (HerbQuiz.__proto__ || Object.getPrototypeOf(HerbQuiz)).call(this, props));
 	
-	        _this.state = { questions: [] };
+	        _this.state = { questions: [], quizID: null };
 	        return _this;
 	    }
 	
@@ -26165,7 +26165,16 @@
 	
 	            client({
 	                method: 'GET',
-	                path: '/api/quizzes/1'
+	                path: '/api/quiz'
+	            }).then(function (response) {
+	                _this2.setState({
+	                    quizID: response.entity
+	                });
+	            }).then(function (response) {
+	                return client({
+	                    method: 'GET',
+	                    path: '/api/quizzes/' + _this2.state.quizID
+	                });
 	            }).done(function (quiz) {
 	                _this2.setState({
 	                    questions: quiz.entity.questions
@@ -26188,7 +26197,7 @@
 	                    null,
 	                    'Quizzzzzzz'
 	                ),
-	                React.createElement(QuestionList, { questions: this.state.questions })
+	                React.createElement(QuestionList, { quizID: this.state.quizID, questions: this.state.questions })
 	            );
 	        }
 	    }]);
@@ -26219,7 +26228,7 @@
 	            client({
 	                method: 'POST',
 	                path: '/api/quiz/submission',
-	                entity: { mapping: this.state.qanda },
+	                entity: { quizID: this.props.quizID, mapping: this.state.qanda },
 	                headers: { 'Content-Type': 'application/json' }
 	            }).done(function (response) {});
 	        }
@@ -26281,7 +26290,6 @@
 	                herb: this.state.herb,
 	                value: event.target.value
 	            });
-	            console.log(event.target);
 	            this.props.onChange(this.props.question.id, event.target.value);
 	        }
 	    }, {
