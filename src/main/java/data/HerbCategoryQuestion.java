@@ -19,7 +19,7 @@ public class HerbCategoryQuestion implements Question{
     @ManyToOne
     private Herb herb;
     @JsonIgnore
-    int correctAnswer;
+    private int correctAnswer;
 
     private HerbCategoryQuestion() {}
 
@@ -27,5 +27,13 @@ public class HerbCategoryQuestion implements Question{
         this.options = options;
         this.herb = herb;
         this.correctAnswer = correctAnswer;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public int getCorrectAnswer() {
+        return correctAnswer;
     }
 }

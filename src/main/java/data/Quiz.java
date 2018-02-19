@@ -20,4 +20,7 @@ public class Quiz {
         repository.findAll().forEach(question -> questions.add(question));
     }
 
+    public Collection<HerbCategoryQuestion> getQuestions() {
+        return questions;
+    }
 }

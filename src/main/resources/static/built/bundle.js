@@ -26286,10 +26286,7 @@
 	    _createClass(Question, [{
 	        key: 'handleChange',
 	        value: function handleChange(event) {
-	            this.setState({
-	                herb: this.state.herb,
-	                value: event.target.value
-	            });
+	            console.log(event.target);
 	            this.props.onChange(this.props.question.id, event.target.value);
 	        }
 	    }, {
@@ -26326,7 +26323,7 @@
 	                    { key: option },
 	                    React.createElement('input', { type: 'radio',
 	                        name: _this7.state.herb.englishName,
-	                        value: option,
+	                        value: 1,
 	                        onChange: _this7.handleChange
 	                    }),
 	                    React.createElement(

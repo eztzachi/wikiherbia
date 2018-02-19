@@ -104,10 +104,7 @@ class Question extends React.Component {
     }
 
     handleChange(event) {
-        this.setState({
-            herb: this.state.herb,
-            value: event.target.value
-        });
+        console.log(event.target);
         this.props.onChange(this.props.question.id, event.target.value);
     }
 
@@ -135,7 +132,7 @@ class Question extends React.Component {
 	        <ul key={option}>
                 <input type="radio"
                     name={this.state.herb.englishName}
-                    value={option}
+                    value={1}
                     onChange={this.handleChange}
                     />
                   <label>
